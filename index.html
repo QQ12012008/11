@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0c0b12">
+<title>给你的一份小小惊喜 ✦</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700&display=swap');
+
+/* ============================================================
+   设计变量：想换颜色时只改这里
+   ============================================================ */
+:root{
+  --bg:#0c0b12;
+  --cream:#f6efe2;
+  --ink:#1d1a24;
+  --muted:#9c97a8;
+  --violet:#b7a6ff;
+  --blue:#6aa8ff;
+  --warm:#f3c98b;
+  --line:rgba(246,239,226,.16);
+}
+
+/* ---------- 基础重置 ---------- */
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  background:var(--bg);
+  color:var(--cream);
+  font-family:Manrope,"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+  -webkit-tap-highlight-color:transparent;
+}
+button,input{font:inherit}
+button{cursor:pointer;touch-action:manipulation}
+button:disabled{opacity:.3;cursor:default}
+[hidden]{display:none!important}
+.gone,.hidden{display:none!important}
+
+/* ---------- 背景与特效层 ---------- */
+.bg{
+  position:fixed;inset:0;z-index:0;
+  background:
+    radial-gradient(60vmax 60vmax at 12% 8%,rgba(139,124,246,.22),transparent 60%),
+    radial-gradient(50vmax 50vmax at 92% 95%,rgba(106,168,255,.14),transparent 60%),
+    var(--bg);
+}
+#fx{position:fixed;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
+.glow{
+  position:fixed;inset:-10%;z-index:1;pointer-events:none;opacity:0;
+  background:radial-gradient(circle at 50% 42%,rgba(183,166,255,.26),transparent 55%);
+  transition:opacity 2.5s ease;
+}
+.glow.on{opacity:1}
+body.midnight #act-countdown .countdown{opacity:.35;transition:opacity 1.2s ease}
+
+/* ============================================================
+   幕（Act）：每一幕是一个全屏层，通过淡入淡出切换
+   ============================================================ */
+.act{
+  position:fixed;top:0;left:0;width:100%;
+  height:100vh;height:100dvh;
+  z-index:2;
+  display:flex;
+  overflow-x:hidden;overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  padding:
+    calc(env(safe-area-inset-top,0px) + 20px)
+    calc(env(safe-area-inset-right,0px) + 20px)
+    calc(env(safe-area-inset-bottom,0px) + 28px)
+    calc(env(safe-area-inset-left,0px) + 20px);
+  opacity:0;visibility:hidden;
+  transition:opacity .9s ease,visibility .9s;
+}
+.act.active{opacity:1;visibility:visible}
+.act-inner{margin:auto;width:100%;max-width:520px;text-align:center;position:relative}
+
+/* 进入动画：子元素带 .rv，在 .play 下淡入；--d 控制延迟 */
+.rv{opacity:0;transform:translateY(16px);transition:opacity 1.2s ease var(--d,0s),transform 1.2s ease var(--d,0s)}
+.play .rv{opacity:1;transform:none}
+
+/* ---------- 通用文字与按钮 ---------- */
+.eyebrow{
+  font-family:"DM Mono",monospace;font-size:clamp(10px,2.6vw,12px);
+  letter-spacing:.2em;color:var(--warm);text-transform:uppercase;
+  margin-bottom:clamp(10px,2.6vh,18px);
+}
+.h2{
+  font-family:"Noto Serif SC",serif;font-weight:600;
+  font-size:clamp(30px,9vw,56px);line-height:1.2;margin:0 0 clamp(12px,3vh,20px);
+}
+.lead{
+  color:#d2ccd9;font-size:clamp(15px,4vw,17px);line-height:1.9;
+  max-width:440px;margin:0 auto clamp(20px,4vh,32px);
+}
+.sub{color:var(--muted);font-size:clamp(13px,3.6vw,15px);line-height:1.8;max-width:420px;margin:0 auto 24px}
+.en-title{
+  font-family:"Noto Serif SC",Georgia,serif;font-style:italic;
+  font-size:clamp(20px,6vw,30px);color:var(--warm);margin:0 0 6px;
+}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:50px;max-width:100%;padding:14px 26px;border-radius:999px;
+  border:1px solid var(--cream);background:var(--cream);color:var(--ink);
+  font-size:16px;font-weight:700;margin-top:20px;
+  transition:transform .2s ease,opacity .2s ease;
+}
+.btn:active{transform:scale(.97)}
+.btn-ghost{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:50px;padding:14px 24px;border-radius:999px;
+  border:1px solid rgba(246,239,226,.35);background:rgba(255,255,255,.04);color:var(--cream);
+  font-size:15px;transition:transform .2s ease;
+}
+.btn-ghost:active{transform:scale(.97)}
+.controls{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-items:center;margin-top:18px}
+.linkish{
+  background:none;border:0;color:var(--muted);font-size:14px;
+  padding:12px;min-height:44px;text-decoration:underline;text-underline-offset:4px;
+}
+
+/* ============================================================
+   第一幕：倒数
+   ============================================================ */
+.cd-title{
+  font-family:"Noto Serif SC",serif;font-weight:600;
+  font-size:clamp(40px,11vw,88px);line-height:1.1;margin:0 0 16px;letter-spacing:.02em;
+}
+.countdown{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:clamp(6px,2.5vw,22px);margin:clamp(24px,6vh,48px) 0 clamp(16px,3vh,24px);
+}
+.unit strong{
+  display:block;font-family:"DM Mono",monospace;font-weight:500;
+  font-size:clamp(34px,11vw,84px);line-height:1.1;letter-spacing:-.04em;
+  font-variant-numeric:tabular-nums;
+}
+.unit span{
+  display:block;margin-top:8px;font-family:"DM Mono",monospace;
+  font-size:clamp(9px,2.5vw,11px);letter-spacing:.16em;color:var(--muted);
+}
+.cd-foot{font-size:12px;color:#6f6a7c;margin:0}
+
+/* ============================================================
+   第二幕：午夜揭晓
+   ============================================================ */
+.reveal-name{font-family:"Noto Serif SC",serif;font-weight:600;font-size:clamp(36px,10vw,68px);line-height:1.2;margin:0 0 18px}
+
+/* ============================================================
+   第三幕：蛋糕与蜡烛
+   ============================================================ */
+.cake{
+  --w:min(72vw,300px);
+  position:relative;width:var(--w);height:calc(var(--w)*.95);
+  margin:clamp(8px,2vh,20px) auto clamp(6px,2vh,14px);
+}
+.plate{
+  position:absolute;left:0;right:0;bottom:0;height:calc(var(--w)*.1);border-radius:50%;
+  background:radial-gradient(ellipse at 50% 30%,#4a4468,#211d33 70%);
+}
+.stack{
+  position:absolute;left:0;right:0;bottom:calc(var(--w)*.07);
+  display:flex;flex-direction:column;align-items:center;
+}
+.tier{
+  position:relative;
+  border-radius:calc(var(--w)*.025) calc(var(--w)*.025) calc(var(--w)*.04) calc(var(--w)*.04);
+  box-shadow:inset 0 -12px 22px rgba(0,0,0,.18),0 18px 30px rgba(0,0,0,.35);
+}
+.tier::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;opacity:.45;
+  background-image:radial-gradient(circle,rgba(255,255,255,.6) calc(var(--w)*.006),transparent calc(var(--w)*.009));
+  background-size:calc(var(--w)*.06) calc(var(--w)*.06);
+}
+.t2{width:calc(var(--w)*.52);height:calc(var(--w)*.24);background:linear-gradient(#f8f1e4,#d9cdb8)}
+.t1{width:calc(var(--w)*.8);height:calc(var(--w)*.3);background:linear-gradient(#b9a9ff,#7564d6)}
+.frost{
+  position:absolute;left:-4%;right:-4%;top:calc(var(--w)*-.028);height:calc(var(--w)*.06);
+  background:#fbf6ec;border-radius:50% 50% 30% 30%/60% 60% 40% 40%;
+  box-shadow:0 4px 10px rgba(0,0,0,.15);
+}
+.drip{
+  position:absolute;top:60%;width:calc(var(--w)*.035);
+  background:#fbf6ec;border-radius:0 0 999px 999px;
+}
+.d1{left:14%;height:calc(var(--w)*.05)}
+.d2{left:46%;height:calc(var(--w)*.08)}
+.d3{left:76%;height:calc(var(--w)*.04)}
+.candle{
+  position:absolute;bottom:calc(100% + var(--w)*.02);
+  width:calc(var(--w)*.032);height:calc(var(--w)*.17);transform:translateX(-50%);
+  border-radius:3px;
+  background:repeating-linear-gradient(135deg,#f6efe2 0 4px,#e7d9c0 4px 8px);
+  box-shadow:0 2px 6px rgba(0,0,0,.2);
+}
+.c1{left:26%}.c2{left:50%}.c3{left:74%}
+.flame{
+  position:absolute;left:50%;bottom:100%;margin-bottom:calc(var(--w)*.01);
+  width:calc(var(--w)*.032);height:calc(var(--w)*.075);transform:translateX(-50%);
+  border-radius:50% 50% 50% 50%/62% 62% 38% 38%;
+  background:radial-gradient(ellipse at 50% 70%,#fff9e0 0%,#ffd98a 35%,#ff9a3c 75%,rgba(255,120,40,0) 100%);
+  box-shadow:0 0 calc(var(--w)*.06) rgba(255,190,90,.7);
+  transform-origin:50% 100%;
+  animation:flicker 1.3s ease-in-out infinite alternate;
+}
+@keyframes flicker{
+  from{transform:translateX(-50%) scale(1,1)}
+  to{transform:translateX(-50%) scale(.9,1.08)}
+}
+.candle.off .flame{opacity:0;transition:opacity .4s ease}
+.smoke{
+  position:absolute;left:50%;bottom:100%;margin-bottom:calc(var(--w)*.01);
+  width:calc(var(--w)*.05);height:calc(var(--w)*.05);border-radius:50%;
+  background:radial-gradient(rgba(230,226,240,.5),rgba(230,226,240,0) 70%);
+  opacity:0;transform:translateX(-50%);
+}
+.candle.off .smoke{animation:smoke 2.8s ease-out forwards}
+@keyframes smoke{
+  0%{opacity:0;transform:translate(-50%,0) scale(.5)}
+  20%{opacity:.8}
+  100%{opacity:0;transform:translate(-50%,calc(var(--w)*-.35)) scale(2.2)}
+}
+.cake-msg{
+  font-family:"DM Mono",monospace;font-size:12px;letter-spacing:.12em;
+  color:var(--muted);min-height:20px;margin-top:6px;padding:0 8px;
+}
+.wish{
+  opacity:0;transform:translateY(14px);pointer-events:none;margin-top:14px;
+  transition:opacity 1.2s ease,transform 1.2s ease;
+}
+.wish.show{opacity:1;transform:none;pointer-events:auto}
+.wish-text{
+  font-family:"Noto Serif SC",serif;font-size:clamp(18px,5vw,22px);line-height:1.85;margin:0 0 6px;
+}
+
+/* ============================================================
+   第四幕：照片回忆
+   ============================================================ */
+.intro-line{font-family:"Noto Serif SC",serif;font-style:italic;font-size:clamp(20px,6vw,28px);color:var(--warm);margin:0 0 14px}
+.counter{font-family:"DM Mono",monospace;font-size:12px;letter-spacing:.2em;color:var(--muted);margin-bottom:14px}
+.polaroid-wrap{touch-action:pan-y}
+.polaroid{
+  width:min(84vw,400px);margin:0 auto;text-align:left;
+  background:#f7f2e7;color:var(--ink);
+  padding:clamp(10px,3vw,14px) clamp(10px,3vw,14px) clamp(16px,4vw,22px);
+  border-radius:4px;box-shadow:0 24px 50px rgba(0,0,0,.45);
+  transform:rotate(-.6deg);
+  transition:transform .4s ease,opacity .4s ease;
+}
+.polaroid.out-l{opacity:0;transform:translateX(-40px) rotate(-.6deg)}
+.polaroid.out-r{opacity:0;transform:translateX(40px) rotate(-.6deg)}
+.polaroid.in-l{opacity:0;transform:translateX(-40px);transition:none}
+.polaroid.in-r{opacity:0;transform:translateX(40px);transition:none}
+.photo-box{
+  height:min(54dvh,460px);background:#0d0c13;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+}
+.photo-box img{width:100%;height:100%;object-fit:contain;display:block}
+.p-date{display:block;font-family:"DM Mono",monospace;font-size:11px;color:#7a7385;letter-spacing:.08em;margin-top:12px}
+.p-title{display:block;font-family:"Noto Serif SC",serif;font-weight:600;font-size:clamp(17px,4.6vw,20px);margin:6px 0 4px}
+.p-note{display:block;font-size:14px;line-height:1.7;color:#4b4655}
+.round{
+  width:56px;height:56px;border-radius:50%;flex:0 0 auto;
+  border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--cream);font-size:20px;
+}
+.dots{display:flex;gap:8px;justify-content:center;margin-top:18px;min-height:6px}
+.dots i{width:6px;height:6px;border-radius:50%;background:#4a4658;transition:all .3s ease}
+.dots i.on{background:var(--warm);width:18px;border-radius:4px}
+
+/* ============================================================
+   第五幕：信件
+   ============================================================ */
+.envelope{
+  position:relative;width:min(80vw,360px);aspect-ratio:1.45;
+  margin:clamp(14px,4vh,30px) auto 0;cursor:pointer;
+  animation:float 4s ease-in-out infinite;
+}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.env-body{
+  position:absolute;inset:0;border-radius:10px;overflow:hidden;
+  background:linear-gradient(160deg,#2c2650,#1a1730);
+  border:1px solid rgba(255,255,255,.12);box-shadow:0 30px 50px rgba(0,0,0,.45);
+  transition:opacity .6s ease,transform .6s ease;
+}
+.env-flap{
+  position:absolute;left:0;right:0;top:0;height:58%;z-index:2;
+  background:#3a3366;clip-path:polygon(0 0,100% 0,50% 100%);
+  transition:transform .8s ease,opacity .8s ease;
+}
+.env-seal{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;
+  width:44px;height:44px;border-radius:50%;display:grid;place-items:center;
+  background:radial-gradient(circle at 40% 35%,#f8d9a4,#b98a4a);color:#2a2010;font-size:16px;
+}
+.envelope.open{animation:none;cursor:default}
+.envelope.open .env-flap{transform:translateY(-14%);opacity:0}
+.envelope.open .env-body{opacity:0;transform:scale(.97)}
+#sheetWrap{opacity:0;transform:translateY(24px);transition:opacity 1s ease,transform 1s ease}
+#sheetWrap.show{opacity:1;transform:none}
+.sheet{
+  background:var(--cream);color:var(--ink);text-align:left;
+  border-radius:6px;padding:clamp(22px,6vw,36px) clamp(20px,6vw,34px);
+  box-shadow:0 30px 60px rgba(0,0,0,.45);
+  overflow-wrap:anywhere;word-break:break-word;
+}
+.sheet-title{font-family:"Noto Serif SC",serif;font-weight:600;font-size:clamp(20px,5.6vw,24px);margin:0 0 18px}
+.sheet p.line{
+  font-family:"Noto Serif SC",serif;font-size:clamp(15px,4vw,17px);line-height:1.95;margin:0 0 14px;
+  opacity:0;transform:translateY(8px);transition:opacity .8s ease,transform .8s ease;
+}
+.sheet p.line.on{opacity:1;transform:none}
+.sign{
+  font-family:"Noto Serif SC",serif;text-align:right;color:#4b4655;margin:22px 0 0;
+  opacity:0;transition:opacity 1s ease;
+}
+.sign.on{opacity:1}
+
+/* ============================================================
+   第六幕：最后的祝福
+   ============================================================ */
+.big18{
+  font-family:"DM Mono",monospace;font-size:clamp(90px,34vw,200px);line-height:1;letter-spacing:-.06em;
+  background:linear-gradient(120deg,#f6efe2,#b7a6ff 60%,#6aa8ff);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  opacity:0;transform:scale(.96);transition:opacity 2s ease,transform 2s ease;
+}
+.play .big18{opacity:1;transform:none}
+.final-line{
+  font-family:"Noto Serif SC",serif;font-size:clamp(16px,4.4vw,19px);line-height:1.9;
+  color:#d9d3e3;margin:0 0 12px;
+  opacity:0;transform:translateY(10px);
+  transition:opacity 1.6s ease var(--d,0s),transform 1.6s ease var(--d,0s);
+}
+.play .final-line{opacity:1;transform:none}
+
+/* ---------- 音乐按钮（只有配置了 musicSrc 才显示） ---------- */
+.music{
+  position:fixed;z-index:50;
+  top:calc(env(safe-area-inset-top,0px) + 12px);
+  right:calc(env(safe-area-inset-right,0px) + 12px);
+  min-height:40px;padding:8px 14px;border-radius:999px;
+  border:1px solid var(--line);background:rgba(20,18,30,.65);color:var(--cream);font-size:13px;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+}
+
+/* ---------- 大屏幕 ---------- */
+@media (min-width:900px){
+  .act-inner{max-width:640px}
+  .polaroid{width:min(60vw,460px)}
+  .photo-box{height:min(60dvh,520px)}
+  .cake{--w:min(40vw,340px)}
+}
+/* ---------- 矮屏（横屏手机） ---------- */
+@media (max-height:600px){
+  .photo-box{height:42dvh}
+  .cd-title{font-size:clamp(28px,8vh,48px)}
+  .countdown{margin:16px 0}
+  .eyebrow{margin-bottom:8px}
+  .cake{--w:min(60vw,200px)}
+}
+/* ---------- 尊重“减少动画”设置 ---------- */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;transition-delay:0s!important}
+}
+</style>
+</head>
+<body>
+
+<div class="bg"></div>
+<canvas id="fx"></canvas>
+<div class="glow" id="glow"></div>
+<button class="music hidden" id="musicBtn" type="button">♪ 播放音乐</button>
+
+<!-- ===================== 第一幕：倒数 ===================== -->
+<section class="act" id="act-countdown">
+  <div class="act-inner">
+    <div class="eyebrow">11 · 17 · 2026 &nbsp;|&nbsp; 马来西亚时间 UTC+8</div>
+    <h1 class="cd-title">先别睡。</h1>
+    <p class="lead">有一件事，要等到零点以后才能打开。<br>所以——一起等一下吧。</p>
+    <div class="countdown" role="timer">
+      <div class="unit"><strong id="d">00</strong><span>DAYS</span></div>
+      <div class="unit"><strong id="h">00</strong><span>HOURS</span></div>
+      <div class="unit"><strong id="m">00</strong><span>MINUTES</span></div>
+      <div class="unit"><strong id="s">00</strong><span>SECONDS</span></div>
+    </div>
+    <p class="cd-foot">倒数按你打开页面时的真实时间计算，刷新也不会乱。</p>
+  </div>
+</section>
+
+<!-- ===================== 第二幕：午夜揭晓 ===================== -->
+<section class="act" id="act-reveal">
+  <div class="act-inner">
+    <div class="eyebrow rv" style="--d:.2s">00 : 00 &nbsp;·&nbsp; 11 · 17 · 2026</div>
+    <p class="en-title rv" style="--d:1.2s">Happy 18th Birthday,</p>
+    <h2 class="reveal-name rv" style="--d:2.4s">生日快乐，<span data-name></span>。</h2>
+    <p class="lead rv" style="--d:3.6s">十八岁不是突然变成大人。<br>只是从今天开始，又多了一年可以慢慢收藏的故事。</p>
+    <div class="rv" style="--d:4.8s"><button class="btn" data-go="cake" type="button">看看你的蛋糕 →</button></div>
+  </div>
+</section>
+
+<!-- ===================== 第三幕：蛋糕与吹蜡烛 ===================== -->
+<section class="act" id="act-cake">
+  <div class="act-inner">
+    <div class="eyebrow">A LITTLE CAKE FOR YOU</div>
+    <h2 class="h2">来，许个愿。</h2>
+
+    <div class="cake" id="cake">
+      <div class="plate"></div>
+      <div class="stack">
+        <div class="tier t2">
+          <div class="frost"><i class="drip d1"></i><i class="drip d2"></i><i class="drip d3"></i></div>
+          <div class="candle c1"><i class="flame"></i><i class="smoke"></i></div>
+          <div class="candle c2"><i class="flame"></i><i class="smoke"></i></div>
+          <div class="candle c3"><i class="flame"></i><i class="smoke"></i></div>
+        </div>
+        <div class="tier t1">
+          <div class="frost"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cake-msg" id="cakeMsg">点击下面的按钮开始</div>
+
+    <div class="controls" id="controls">
+      <button class="btn" id="tapBtn" type="button">✨ 帮我吹灭蜡烛</button>
+    </div>
+
+    <div class="wish" id="wish">
+      <p class="wish-text" id="wishText"></p>
+      <button class="btn" data-go="memories" type="button">看看这一年 →</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 第四幕：照片回忆 ===================== -->
+<section class="act" id="act-memories">
+  <div class="act-inner">
+
+    <!-- 开场文字 -->
+    <div id="memIntro">
+      <div class="eyebrow rv" style="--d:0s">JAN — NOV · 2026</div>
+      <p class="intro-line rv" style="--d:.4s" id="openLine"></p>
+      <p class="sub rv" style="--d:1.4s">有些日子当时觉得很普通，后来才发现，原来值得留下。</p>
+      <div class="rv" style="--d:2.4s"><button class="btn" id="startMem" type="button">开始翻看 →</button></div>
+    </div>
+
+    <!-- 照片浏览 -->
+    <div id="memStage" hidden>
+      <div class="counter" id="memCounter">1 / 1</div>
+      <div class="polaroid-wrap" id="polaroidWrap">
+        <figure class="polaroid" id="polaroid">
+          <div class="photo-box"><img id="photoImg" alt=""></div>
+          <figcaption>
+            <span class="p-date" id="pDate"></span>
+            <strong class="p-title" id="pTitle"></strong>
+            <span class="p-note" id="pNote"></span>
+          </figcaption>
+        </figure>
+      </div>
+      <div class="dots" id="dots"></div>
+      <div class="controls">
+        <button class="round" id="prevBtn" type="button" aria-label="上一张">←</button>
+        <button class="btn" id="nextBtn" type="button" style="margin-top:0">下一张 →</button>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== 第五幕：信件 ===================== -->
+<section class="act" id="act-letter">
+  <div class="act-inner">
+    <div id="envWrap">
+      <div class="eyebrow">A LETTER ONLY FOR YOU</div>
+      <div class="envelope" id="envelope" role="button" tabindex="0" aria-label="打开信件">
+        <div class="env-body"></div>
+        <div class="env-flap"></div>
+        <span class="env-seal">✦</span>
+      </div>
+      <div><button class="btn" id="openLetterBtn" type="button">Open your letter</button></div>
+    </div>
+
+    <div id="sheetWrap" hidden>
+      <article class="sheet">
+        <h2 class="sheet-title" id="letterTitle"></h2>
+        <div id="letterBody"></div>
+        <p class="sign" id="letterSign"></p>
+      </article>
+      <div class="controls">
+        <button class="linkish" id="skipLetter" type="button">跳过动画</button>
+        <button class="btn" id="letterNext" data-go="final" type="button" hidden>看最后的祝福 →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 第六幕：最后的祝福 ===================== -->
+<section class="act" id="act-final">
+  <div class="act-inner">
+    <div class="big18">18</div>
+    <div class="eyebrow" style="margin-top:14px">THE LAST WISH</div>
+    <h2 class="h2" id="finalTitle"></h2>
+    <div id="finalLines"></div>
+    <div class="controls">
+      <button class="btn-ghost" id="replayMem" type="button">再看一遍回忆</button>
+      <button class="btn-ghost" id="replayLetter" type="button">重新读一遍信</button>
+    </div>
+  </div>
+</section>
+
+<script>
+/* =====================================================================
+   ★★★ 需要你填写的内容都在这里 ★★★
+   ===================================================================== */
+const CONFIG = {
+  // 朋友的名字（会自动替换到页面各处）
+  friendName: "宣颖",
+
+  // 倒数目标：马来西亚时间 2026-11-17 00:00:00（UTC+8）。一般不用改。
+  birthday: "2026-11-17T00:00:00+08:00",
+
+  // 照片回忆的开场文字
+  openingLine: "A year full of little moments...",
+
+  // 照片列表：按顺序展示。
+  // src：照片路径（放在 photos 文件夹里，文件名与下面一致即可）
+  // date / title / note：日期、标题、一句回忆，可以留空 ""
+  // 如果照片没放好，会显示一张占位图并提示路径。
+  photos: [
+    { src: "photos/1.jpg", date: "2026.06.23", title: "校外教学", note: "好可惜呀 xy病了" },
+    { src: "photos/2.jpg", date: "2026.08.15", title: "成年礼", note: "大力士麻" },
+    { src: "photos/3.jpg", date: "2026.08.15", title: "成年礼", note: "这是谁呀" },
+    { src: "photos/4.jpg", date: "2026.08.15", title: "成年礼", note: "是哭还是笑呢" },
+    { src: "photos/5.jpg", date: "2026.08.15", title: "合唱赛", note: "好听麻" },
+    { src: "photos/6.jpg", date: "2026.08.15", title: "成年门", note: "是谁成年了呐" },
+    { src: "photos/7.jpg", date: "2026.08.20", title: "饭饭", note: "好好吃的番茄炒蛋呀 饿了" },
+    { src: "photos/8.jpg", date: "2026.08.28", title: "拿奖了呀", note: "上台不要尴尬！！" },
+    { src: "photos/9.jpg", date: "2026.08.28", title: "不知意义", note: "好高冷蛙" },
+    { src: "photos/10.jpg", date: "2026.08.28", title: "不知意义2", note: "蚊子视角麻" },
+    { src: "photos/11.jpg", date: "2026.08.29", title: "不知意义3", note: "蚊子视角2" },
+    { src: "photos/12.jpg", date: "2026.09.04", title: "无奖竞猜", note: "谁的红袜子呢" },
+    { src: "photos/13.jpg", date: "2026.09.10", title: "小甜水", note: "老npc了" },
+    { src: "photos/14.jpg", date: "2026.09.11", title: "什么日子呢", note: "是神圣的泡面大会丫" },
+    { src: "photos/15.jpg", date: "2026.09.13", title: "净滩日", note: "朦胧美麻" },
+    { src: "photos/16.jpg", date: "2026.10.07", title: "不知不觉的最后一天上课日了呢", note: "要毕业咯" }
+  ],
+
+  // 吹蜡烛后出现的一句祝福
+  wishText: "愿你十八岁的每一天，都比今天更自由，也更像你自己。",
+
+  // 私人信件（{name} 会自动替换为朋友的名字；可以增删段落）
+  letter: {
+    title: "致 xyyyyy",
+    paragraphs: [
+      "嗯嗯发现了麻，这些照片都不走寻常路呢。放正常的照片就不好玩了哇。（ps:主要是有人喜欢拍蚊子视角的照片呢）",
+      "没办法主要有人留了一堆奇奇怪怪的照片在我手机。",
+      "愿你接下来的每一年，都有想去的地方，有喜欢的人和事，也有能让你安心笑出来的时刻。（AI写的呐 就不删了 噜啦啦）（这是那只小蜥蜴）",
+      "生日快乐呀。今晚的蛋糕不用吃太认真，记得许愿，也记得好好吃东西。（AI againnn)"
+    ],
+    signature: "—— 。。。"
+  },
+
+  // 最后的祝福
+  finalTitle: "宣颖，十八岁快乐。",
+  finalLines: [
+    "十八岁，是一扇门，不是一道墙。",
+    "往前走的时候，别忘了回头看看，这里一直有人为你亮着灯。"
+  ],
+
+  // 背景音乐（可选）：把音乐文件放到 music 文件夹里，填写路径，如 "music/birthday.mp3"
+  // 留空 "" 则不显示音乐按钮。必须由用户点击后才播放。
+  musicSrc: "music/birthday.mp3"
+};
+/* ===================================================================== */
+
+// ---------- 小工具 ----------
+const $ = id => document.getElementById(id);
+const pad = n => String(n).padStart(2, "0");
+const fill = s => s.replaceAll("{name}", CONFIG.friendName);
+const TARGET = new Date(CONFIG.birthday).getTime();
+const ACTS = {
+  countdown: "act-countdown", reveal: "act-reveal", cake: "act-cake",
+  memories: "act-memories", letter: "act-letter", final: "act-final"
+};
+
+// ---------- 幕切换 ----------
+let zTop = 2, currentAct = null;
+function showAct(name){
+  const id = ACTS[name];
+  if(!id || currentAct === name) return;
+  currentAct = name;
+  const el = $(id);
+  el.style.zIndex = ++zTop;      // 新的一幕永远在最上层
+  el.scrollTop = 0;
+  requestAnimationFrame(() => el.classList.add("active"));
+  // 旧的一幕淡出后再隐藏，避免它挡住点击
+  document.querySelectorAll(".act").forEach(a => {
+    if(a !== el) setTimeout(() => { if(a !== $(ACTS[currentAct])) a.classList.remove("active"); }, 950);
+  });
+}
+function goAct(name, opts = {}){
+  if(!ACTS[name]) return;
+  if(name === "reveal") $("act-reveal").classList.add("play");
+  if(name === "memories"){ opts.stage ? openStage(0) : resetMemIntro(); }
+  if(name === "letter" && letterDone) showLetterDone();
+  if(name === "final") playFinal();
+  showAct(name);
+}
+// 所有 data-go 按钮统一处理
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-go]");
+  if(b) goAct(b.dataset.go);
+});
+
+// ---------- 第一幕：倒数（按真实时间计算，不是固定时长计时器）----------
+let revealed = false;
+function tick(){
+  if(revealed) return;
+  const diff = TARGET - Date.now();
+  if(diff <= 0){ beginMidnight(); return; }   // 到点：进入午夜揭晓
+  const total = Math.floor(diff / 1000);
+  $("d").textContent = pad(Math.floor(total / 86400));
+  $("h").textContent = pad(Math.floor(total % 86400 / 3600));
+  $("m").textContent = pad(Math.floor(total % 3600 / 60));
+  $("s").textContent = pad(total % 60);
+}
+
+// ---------- 第二幕：午夜揭晓 ----------
+function beginMidnight(){
+  if(revealed) return;
+  revealed = true;
+  ["d","h","m","s"].forEach(id => $(id).textContent = "00");   // 停在 00，不出现负数
+  document.body.classList.add("midnight");
+  $("glow").classList.add("on");
+  setTimeout(() => { goAct("reveal"); }, 1600);
+  setTimeout(() => burst(innerWidth / 2, innerHeight * .42, 90), 1800);
+  setTimeout(() => burst(innerWidth / 2, innerHeight * .42, 50), 2600);
+}
+
+// ---------- 粒子特效（Canvas）----------
+const fxCanvas = $("fx"), fxCtx = fxCanvas.getContext("2d");
+let W = 0, H = 0, DPR = 1, stars = [], parts = [];
+function resize(){
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  W = innerWidth; H = innerHeight;
+  fxCanvas.width = W * DPR; fxCanvas.height = H * DPR;
+  fxCtx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  const n = Math.round(Math.min(70, W * H / 18000));   // 星星数量随屏幕大小变化
+  stars = Array.from({length: n}, () => ({
+    x: Math.random() * W, y: Math.random() * H,
+    r: Math.random() * 1.4 + .3, s: Math.random() * .25 + .05,
+    a: Math.random() * 6, tw: Math.random() * .02 + .005
+  }));
+}
+window.addEventListener("resize", resize);
+resize();
+// 爆发式粒子（午夜 / 吹蜡烛），总数有上限，防止卡顿
+function burst(x, y, n = 60){
+  const colors = ["#f6efe2", "#b7a6ff", "#6aa8ff", "#f3c98b"];
+  for(let i = 0; i < n && parts.length < 220; i++){
+    const ang = Math.random() * Math.PI * 2, sp = Math.random() * 5 + 1.5;
+    parts.push({ x, y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp - 2, life: 0,
+      max: 70 + Math.random() * 50, r: Math.random() * 2.2 + .8, c: colors[i % colors.length] });
+  }
+}
+function frame(){
+  if(!document.hidden){
+    fxCtx.clearRect(0, 0, W, H);
+    for(const s of stars){
+      s.a += s.tw;
+      fxCtx.globalAlpha = .25 + .55 * (.5 + .5 * Math.sin(s.a));
+      fxCtx.fillStyle = "#f6efe2";
+      fxCtx.beginPath(); fxCtx.arc(s.x, s.y, s.r, 0, Math.PI * 2); fxCtx.fill();
+      s.y += s.s;
+      if(s.y > H + 2){ s.y = -2; s.x = Math.random() * W; }
+    }
+    for(let i = parts.length - 1; i >= 0; i--){
+      const p = parts[i];
+      p.life++; p.vx *= .98; p.vy = p.vy * .98 + .04; p.x += p.vx; p.y += p.vy;
+      const k = 1 - p.life / p.max;
+      if(k <= 0){ parts.splice(i, 1); continue; }
+      fxCtx.globalAlpha = k; fxCtx.fillStyle = p.c;
+      fxCtx.beginPath(); fxCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2); fxCtx.fill();
+    }
+    fxCtx.globalAlpha = 1;
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+// ---------- 第三幕：蛋糕与蜡烛（点击按钮吹灭）----------
+let blown = false;
+
+// 熄灭蜡烛；blown 标记防止重复触发
+function blowOut(){
+  if(blown) return;
+  blown = true;
+  document.querySelectorAll(".candle").forEach((c, i) => {
+    c.classList.add("off");
+    setTimeout(() => {
+      const r = c.querySelector(".flame").getBoundingClientRect();
+      burst(r.left + r.width / 2, r.top + r.height / 2, 26);
+    }, i * 120);
+  });
+  $("cakeMsg").textContent = "WISH MADE ✦";
+  $("controls").classList.add("gone");
+  $("wish").classList.add("show");
+}
+$("tapBtn").onclick = () => blowOut();
+
+// ---------- 第四幕：照片回忆 ----------
+const photos = CONFIG.photos.slice();
+let photoIdx = 0, busy = false, slideshowOn = false;
+
+// 照片加载失败时显示占位图，并提示正确路径
+function placeholderFor(path){
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000" viewBox="0 0 800 1000">
+    <rect width="800" height="1000" fill="#1b1926"/>
+    <text x="400" y="470" fill="#9c97a8" font-size="40" text-anchor="middle" font-family="sans-serif">照片占位</text>
+    <text x="400" y="530" fill="#6f6a80" font-size="28" text-anchor="middle" font-family="sans-serif">请放入：${path}</text>
+  </svg>`;
+  return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+}
+
+function renderPhoto(i){
+  const p = photos[i];
+  const img = $("photoImg");
+  img.dataset.fb = "";
+  img.onerror = () => {
+    if(img.dataset.fb) return;          // 只替换一次，防止死循环
+    img.dataset.fb = "1";
+    img.src = placeholderFor(p.src);
+  };
+  img.src = p.src;
+  img.alt = p.title || "";
+  $("pDate").textContent = p.date || "";
+  $("pTitle").textContent = p.title || "";
+  $("pNote").textContent = p.note || "";
+  $("memCounter").textContent = `${i + 1} / ${photos.length}`;
+  $("dots").innerHTML = photos.map((_, k) => `<i class="${k === i ? "on" : ""}"></i>`).join("");
+  $("prevBtn").disabled = i === 0;
+  $("nextBtn").textContent = i === photos.length - 1 ? "写给你的信 →" : "下一张 →";
+}
+
+// 切换照片（带防重复点击保护）
+function changePhoto(delta){
+  if(busy) return;
+  const n = photoIdx + delta;
+  if(n < 0) return;
+  if(n >= photos.length){ goAct("letter"); return; }   // 最后一张之后，平滑进入信件
+  busy = true;
+  const pol = $("polaroid");
+  pol.classList.add(delta > 0 ? "out-l" : "out-r");
+  setTimeout(() => {
+    photoIdx = n;
+    renderPhoto(n);
+    pol.classList.remove("out-l", "out-r");
+    pol.classList.add(delta > 0 ? "in-r" : "in-l");
+    requestAnimationFrame(() => requestAnimationFrame(() => pol.classList.remove("in-r", "in-l")));
+    setTimeout(() => { busy = false; }, 420);
+  }, 300);
+}
+
+function resetMemIntro(){
+  const mi = $("memIntro");
+  mi.hidden = false;
+  $("memStage").hidden = true;
+  slideshowOn = false;
+  mi.classList.remove("play");
+  void mi.offsetWidth;               // 强制重绘，让开场动画能重新播放
+  mi.classList.add("play");
+}
+function openStage(start){
+  $("memIntro").hidden = true;
+  $("memStage").hidden = false;
+  slideshowOn = true;
+  photoIdx = start;
+  renderPhoto(start);
+}
+
+$("startMem").onclick = () => openStage(0);
+$("prevBtn").onclick = () => changePhoto(-1);
+$("nextBtn").onclick = () => changePhoto(1);
+$("replayMem").onclick = () => goAct("memories", { stage: true });
+
+// 左右滑动切换（手机）
+let touchX = null;
+const pw = $("polaroidWrap");
+pw.addEventListener("touchstart", e => { touchX = e.touches[0].clientX; }, { passive: true });
+pw.addEventListener("touchend", e => {
+  if(touchX === null) return;
+  const dx = e.changedTouches[0].clientX - touchX;
+  touchX = null;
+  if(Math.abs(dx) > 45) changePhoto(dx < 0 ? 1 : -1);
+}, { passive: true });
+// 键盘左右键（电脑）
+document.addEventListener("keydown", e => {
+  if(currentAct !== "memories" || !slideshowOn) return;
+  if(e.key === "ArrowRight") changePhoto(1);
+  if(e.key === "ArrowLeft") changePhoto(-1);
+});
+
+// ---------- 第五幕：信件 ----------
+let letterOpened = false, letterDone = false, letterTimers = [];
+
+function buildLetter(){
+  $("letterTitle").textContent = fill(CONFIG.letter.title);
+  const body = $("letterBody");
+  body.innerHTML = "";
+  CONFIG.letter.paragraphs.forEach(t => {
+    const p = document.createElement("p");
+    p.className = "line";
+    p.textContent = fill(t);
+    body.appendChild(p);
+  });
+  $("letterSign").textContent = fill(CONFIG.letter.signature);
+}
+function openLetter(){
+  if(letterOpened) return;
+  letterOpened = true;
+  $("envelope").classList.add("open");
+  $("openLetterBtn").hidden = true;
+  setTimeout(() => {                 // 等信封动画结束再显示信纸
+    $("envWrap").hidden = true;
+    $("sheetWrap").hidden = false;
+    requestAnimationFrame(() => $("sheetWrap").classList.add("show"));
+    revealLines(0);
+  }, 900);
+}
+// 逐段显示（每段间隔约 0.4 秒，不拖沓）
+function revealLines(i){
+  const lines = $("letterBody").children;
+  if(i >= lines.length){ finishLetter(); return; }
+  lines[i].classList.add("on");
+  letterTimers.push(setTimeout(() => revealLines(i + 1), 420));
+}
+function finishLetter(){
+  if(letterDone) return;
+  letterDone = true;
+  $("letterSign").classList.add("on");
+  $("letterNext").hidden = false;
+}
+function showLetterDone(){   // 再次进入信件：直接显示全文
+  $("envWrap").hidden = true;
+  $("sheetWrap").hidden = false;
+  $("sheetWrap").classList.add("show");
+  [...$("letterBody").children].forEach(p => p.classList.add("on"));
+  $("letterSign").classList.add("on");
+  $("letterNext").hidden = false;
+}
+$("openLetterBtn").onclick = openLetter;
+$("envelope").onclick = openLetter;
+$("envelope").addEventListener("keydown", e => { if(e.key === "Enter" || e.key === " ") openLetter(); });
+$("skipLetter").onclick = () => {
+  letterTimers.forEach(clearTimeout);
+  letterTimers = [];
+  [...$("letterBody").children].forEach(p => p.classList.add("on"));
+  finishLetter();
+};
+$("replayLetter").onclick = () => goAct("letter");
+
+// ---------- 第六幕：最后的祝福 ----------
+function playFinal(){
+  const act = $("act-final");
+  const box = $("finalLines");
+  box.innerHTML = "";
+  CONFIG.finalLines.forEach((t, i) => {
+    const p = document.createElement("p");
+    p.className = "final-line";
+    p.style.setProperty("--d", (0.4 + i * 1.1) + "s");
+    p.textContent = fill(t);
+    box.appendChild(p);
+  });
+  act.classList.remove("play");
+  requestAnimationFrame(() => requestAnimationFrame(() => act.classList.add("play")));
+}
+
+// ---------- 音乐（用户主动点击才播放）----------
+function setupMusic(){
+  if(!CONFIG.musicSrc) return;
+  const btn = $("musicBtn");
+  const music = new Audio(CONFIG.musicSrc);
+  music.loop = true;
+  music.volume = .35;
+  music.onerror = () => btn.classList.add("hidden");   // 文件不存在时隐藏按钮
+  btn.classList.remove("hidden");
+  btn.onclick = () => {
+    if(music.paused){
+      music.play()
+        .then(() => { btn.textContent = "🔇 静音"; })
+        .catch(() => { btn.textContent = "♪ 无法播放"; });
+      return;
+    }
+    music.muted = !music.muted;
+    btn.textContent = music.muted ? "🔊 取消静音" : "🔇 静音";
+  };
+}
+
+// ---------- 初始化 ----------
+function init(){
+  document.querySelectorAll("[data-name]").forEach(el => el.textContent = CONFIG.friendName);
+  document.title = `给 ${CONFIG.friendName} 的十八岁生日惊喜 ✦`;
+  $("openLine").textContent = CONFIG.openingLine;
+  $("wishText").textContent = CONFIG.wishText;
+  $("finalTitle").textContent = fill(CONFIG.finalTitle);
+  buildLetter();
+  renderPhoto(0);
+  setupMusic();
+
+  // 测试用：在网址后加 ?preview=cake（可选 reveal / cake / memories / letter / final）直接跳到某一幕
+  const preview = new URLSearchParams(location.search).get("preview");
+  if(preview && ACTS[preview] && preview !== "countdown"){
+    revealed = true;
+    $("glow").classList.add("on");
+    goAct(preview);
+    return;
+  }
+
+  // 打开页面时已经过了生日零点：直接进入揭晓画面，不显示负数倒数
+  if(Date.now() >= TARGET){
+    revealed = true;
+    document.body.classList.add("midnight");
+    $("glow").classList.add("on");
+    goAct("reveal");
+    return;
+  }
+
+  // 正常情况：显示倒数
+  showAct("countdown");
+  tick();
+  setInterval(tick, 250);
+  // 切回页面时立即校正（手机后台时定时器会被暂停）
+  document.addEventListener("visibilitychange", () => { if(!document.hidden) tick(); });
+}
+
+init();
+</script>
+</body>
+</html>
